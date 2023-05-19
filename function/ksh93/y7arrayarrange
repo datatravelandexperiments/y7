@@ -1,0 +1,42 @@
+function y7arrayarrange
+{
+    typeset -n array=$1
+    shift
+    typeset -a level pattern dist
+    typeset i j l default=0
+
+    # Split and find minimum level.
+    for i
+    do
+        l="${i%%:*}"
+        ((l < default)) && default=$l
+        level+=("$l")
+        pattern+=("${i#*:}")
+    done
+    ((default = 0 - default))
+
+    # Distribute.
+    for i in "${array[@]}"
+    do
+        l=$default
+        for j in ${!level[*]}
+        do
+            if [[ $i == ${pattern[j]} ]]
+            then
+                ((l += ${level[j]}))
+                break
+            fi
+        done
+        dist[l]+=("$i")
+    done
+
+    # Flatten.
+    array=()
+    for i in ${!dist[*]}
+    do
+        for j in "${dist[i][@]}"
+        do
+            array+=("$j")
+        done
+    done
+}

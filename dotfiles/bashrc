@@ -1,0 +1,8 @@
+if [[ -n $Y7SYS && ${BASH_VERSINFO[0]} -gt 3 ]]
+then
+    . "$Y7SYS/startup/subshell"
+    if [[ $- == *i* ]]
+    then
+        . "$Y7SYS/startup/interactive"
+    fi
+fi

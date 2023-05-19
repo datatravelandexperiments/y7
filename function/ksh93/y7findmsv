@@ -1,0 +1,34 @@
+function y7findmsv
+{
+    typeset file=$1 dir subdir
+    shift
+    if [[ $file == '-d' ]]
+    then
+        file=
+    else
+        file="/$file"
+    fi
+    for dir
+    do
+        dir="${dir%/}"
+        for subdir in \
+            "/host/${Y7HOST}" \
+            "/site/${Y7SITE}" \
+            "/platform/${Y7OS}-${Y7OR}-${Y7HW}" \
+            "/platform/${Y7OS}-${Y7HW}" \
+            "/platform/${Y7OS}-${Y7OR}" \
+            "/platform/${Y7OS}" \
+            "/platform/${Y7HW}" \
+            /default \
+            ''
+        do
+            if [[ -e "$dir$subdir$file" ]]
+            then
+                # print -u2 "found $dir$subdir$file"
+                printf '%s\n' "$dir$subdir$file"
+                return 0
+            fi
+        done
+    done
+    return 1
+}

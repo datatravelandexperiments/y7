@@ -1,0 +1,46 @@
+function y7arrayarrange
+{
+    typeset _aname=$1
+    shift
+    typeset -a _plevel _pattern _alevel _out
+    typeset -a _array=(${(P)_aname})
+    typeset _i _j _l _min=0 _max=0
+
+    # Split and find minimum & maximum level.
+    for _i
+    do
+        _l="${_i%%:*}"
+        ((_l < _min)) && _min=$_l
+        ((_l > _max)) && _max=$_l
+        _plevel+=("$_l")
+        _pattern+=("${_i#*:}")
+    done
+
+    # Find level of each array element.
+    for _i in $_array
+    do
+        _l=0
+        for ((_j = 1; _j <= ${#_plevel}; ++_j))
+        do
+            if [[ $_i == ${~_pattern[_j]} ]]
+            then
+                ((_l = ${_plevel[_j]}))
+                break
+            fi
+        done
+        _alevel+=($_l)
+    done
+
+    # Distribute.
+    for ((_i = _min; _i <= _max; ++_i))
+    do
+        for ((_j = 1; _j <= ${#_alevel}; ++_j))
+        do
+            if ((_i == _alevel[_j]))
+            then
+                _out+=("${_array[_j]}")
+            fi
+        done
+    done
+    set -A $_aname $_out
+}

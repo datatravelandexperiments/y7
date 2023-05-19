@@ -1,0 +1,50 @@
+#!/usr/bin/env ksh93
+
+SELF=${0##*/}
+
+typeset -C opt=(
+    usage=$'
+        [-1]
+        [v:verbose]
+        [Y:y7sys]:[DIR]
+        '
+)
+
+while getopts -a "$SELF" "${opt.usage}" opt._
+do
+    case ${opt._} in
+    Y)
+        if [[ -d $OPTARG ]]
+        then
+            export Y7SYS=$OPTARG
+        else
+            print -u2 "$SELF: not a directory: $OPTARG"
+        fi
+        ;;
+    \?)
+        $0 '--??'
+        exit 1
+        ;;
+    *)
+        typeset opt._${opt._}=${OPTARG:-1}
+        ;;
+    esac
+done
+shift OPTIND-1
+
+if [[ -z $Y7SYS || ! -d $Y7SYS ]]
+then
+    print -u2 "$SELF: no Y7SYS"
+    exit 1
+fi
+
+. "$Y7SYS/util/pkgsplit"
+
+typeset -p y7_pkd
+if ! y7_i=$(y7arrayindex y7_pkd -d stty)
+then
+    print -u2 "$SELF: can't find stty package"
+fi
+y7_d="${y7_pkd[y7_i]}/stty"
+
+. "$Y7SYS/util/load" terminal "$y7_d"

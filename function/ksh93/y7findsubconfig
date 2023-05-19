@@ -1,0 +1,9 @@
+function y7findsubconfig
+{
+    typeset pkg="${1##*/}" file="$2"
+    shift 2
+    y7findmsv "$file" \
+        "${XDG_CONFIG_HOME}/y7/$pkg" \
+        "${XDG_CONFIG_HOME}/$pkg" \
+        "$@"
+}

@@ -1,0 +1,26 @@
+function y7arrayadd
+{
+    typeset _a=$1
+    typeset _d _i _r=1 _t=$2
+    shift 2
+    for _d
+    do
+        if test $_t $_d
+        then
+            for _i in ${(P)_a}
+            do
+                if [[ "$_i" == "$_d" || $_i -ef $_d ]]
+                then
+                    _d=
+                    break
+                fi
+            done
+            if [[ -n $_d ]]
+            then
+                set -A $_a ${(P)_a} "$_d"
+                _r=0
+            fi
+        fi
+    done
+    return $_r
+}

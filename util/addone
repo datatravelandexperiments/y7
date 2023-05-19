@@ -1,0 +1,15 @@
+# shellcheck source=pkgadd
+. "$Y7SYS/util/pkgadd" "$@"
+case $? in
+0) :;;
+1) echo >&2 "package \"$1\" not found"; return $?;;
+2) echo >&2 "package \"$1\" already loaded"; return $?;;
+*) echo >&2 "package \"$1\" not loaded"; return $?;;
+esac
+
+# shellcheck source=load
+. "$Y7SYS/util/load" login "$y7_d"
+. "$Y7SYS/util/load" terminal "$y7_d"
+. "$Y7SYS/util/load" interactive "$y7_d"
+
+# vim:set filetype=sh et sts=4 sw=4 ai noci nosi:

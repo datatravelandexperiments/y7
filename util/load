@@ -1,0 +1,9 @@
+# "$Y7SYS/util/load" ‹phase› ‹dir› [‹args›…]
+
+y7_f="$2/$1"
+if [[ ${y7_pkgx[${2##*/}]} == *${1:0:1}* && -f "$y7_f" ]]
+then
+    # echo >&2 "load ${y7_f}"
+    shift
+    . "$y7_f" "$@"
+fi

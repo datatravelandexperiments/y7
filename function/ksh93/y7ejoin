@@ -1,0 +1,14 @@
+function y7ejoin
+{
+    typeset i r e
+    for i
+    do
+        if [[ $i == *@? ]]
+        then
+            e="${i:${#i}-1}"
+            i="${i%@?}${e}@="
+        fi
+        r+=${r:+:}${i//:/@+:}
+    done
+    printf '%s' "$r"
+}

@@ -1,0 +1,41 @@
+# y7esplit ‹_array:out› ‹pathlist›
+#
+# zsh version.
+
+function y7esplit
+{
+    typeset _ifs=$(typeset -p IFS)
+    typeset -a _t
+    typeset _aname=$1
+    shift
+    IFS=:
+    set -f
+    _t=($=*)
+    set +f
+    # IFS is actually a field terminator, not a field separator.
+    [[ $* == *: ]] && _t+=('')
+    eval $_ifs
+
+    typeset -a _array
+    typeset -i _i=1 _first=1
+    typeset _d _e
+    while ((_i <= ${#_t}))
+    do
+        _d=${_t[_i]}
+        while [[ $_d == *@+ ]]
+        do
+            (( ++_i ))
+            _d="${_d%@+}:${_t[_i]}"
+        done
+        if [[ $_d == *@= ]]
+        then
+            _e="${_d:${#_i}-4:1}"
+            _d="${_d%?@=}@${_e}"
+        fi
+        _array+=("$_d")
+        (( ++_i ))
+    done
+    set -A $_aname $_array
+}
+
+# vim:set filetype=sh et sts=4 sw=4 ai noci nosi:

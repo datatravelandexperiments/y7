@@ -1,0 +1,16 @@
+function y7findsubdata
+{
+    typeset pkg="${1##*/}" file="$2"
+    shift 2
+    y7findmsv "$file" "$XDG_DATA_HOME/$pkg" "$@" && return 0
+    if [[ -n $XDG_DATA_DIRS ]]
+    then
+        typeset d dd
+        y7psplit dd "$XDG_DATA_DIRS"
+        for d in "${dd[@]}"
+        do
+            y7findmsv "$file" "${dd[@]}" && return 0
+        done
+    fi
+    return 1
+}

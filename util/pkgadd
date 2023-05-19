@@ -1,0 +1,36 @@
+# Sets:
+#   y7_p        -- package name
+#   y7_d        -- package full directory
+# Updates:
+#   y7_pkgs[]   array of package names
+#   y7_pkgd[]   associative array of package directory by package name
+#   y7_pkgi[]   associative array of y7_pkd[] index by package name
+#   y7_pkgx[]   associative array of load flags by package name
+# Updates y7_path[] and function path(s).
+# Loads profile phase.
+
+y7_p="$1"
+shift
+
+y7_i=$(y7arrayindex y7_pkd -d "$y7_p") || return 1
+y7_d="${y7_pkd[Y7Z+y7_i]}/$y7_p"
+
+[[ -z ${y7_pkgd[$y7_p]} ]] || return 2
+
+y7_x=
+[[ -f "$y7_d/profile" ]] && y7_x+=p
+[[ -f "$y7_d/login" ]] && y7_x+=l
+[[ -f "$y7_d/terminal" ]] && y7_x+=t
+[[ -f "$y7_d/interactive" ]] && y7_x+=i
+y7_pkgx[$y7_p]=$y7_x
+
+. "$Y7SYS/util/load" profile "$y7_d" "$@" || return 3
+
+y7_pkgs+=("$y7_p")
+y7_pkgi[$y7_p]="$y7_i"
+y7_pkgd[$y7_p]="$y7_d"
+
+[[ -d "$y7_d/bin" ]] && y7arrayadd y7_path -d "$y7_d/bin"
+. "$Y7SYS/util/fpath" profile "$y7_d/function"
+
+return 0

@@ -1,0 +1,15 @@
+function y7arrayindex
+{
+    typeset -n a=$1
+    typeset t=$2 p=$3
+    typeset -i i
+    for ((i = 0; i < ${#a[@]}; ++i))
+    do
+        if test "$t" "${a[i]}/$p"
+        then
+            echo $i
+            return 0
+        fi
+    done
+    return 1
+}

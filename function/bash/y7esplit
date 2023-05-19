@@ -1,0 +1,42 @@
+function y7esplit
+{
+    typeset -n array=$1
+    shift
+    if [[ -z $1 ]]
+    then
+        array=()
+        return
+    fi
+
+    # Split into local array |t|.
+    typeset -a t
+    IFS=: read -ra t <<<$*
+    # IFS is actually a field terminator, not a field separator.
+    [[ $* == *: ]] && t+=('')
+
+    array=()
+    typeset -i i=0 first=1
+    typeset d e
+    while ((i < ${#t[*]}))
+    do
+        d=${t[i]}
+        while [[ $d == *@+ ]]
+        do
+            (( ++i ))
+            d="${d%@+}:${t[i]}"
+        done
+        if [[ $d == *@= ]]
+        then
+            e="${d:${#i}-4:1}"
+            d="${d%?@=}@${e}"
+        fi
+        if (( first ))
+        then
+            first=0
+            array=("$d")
+        else
+            array+=("$d")
+        fi
+        (( ++i ))
+    done
+}

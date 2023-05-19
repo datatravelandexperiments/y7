@@ -1,0 +1,45 @@
+# zsh version
+
+function y7inpath
+{
+    typeset _opc _number=1 _method=y7psplit _tilde=1 _indent= _did _d _f
+    typeset -a _dirs _tmp
+    typeset OPTIND
+    while getopts 'A:S:ep' _opc
+    do
+        case "$_opc" in
+        A)  _dirs+=(${(P)OPTARG})
+            _did=1
+            ;;
+        S)  typeset _s=${(P)OPTARG}
+            $_method _tmp "$_s"
+            _dirs+=("${_tmp[@]}")
+            _did=1
+            ;;
+        e)  _method=y7esplit;;
+        p)  _method=y7psplit;;
+        '?')
+            echo >&2 "Usage: _dirs [-elspv] [-A array] [-S var] [dir:dir:…]"
+            echo >&2 "  -e        - use Y7 escaped splitting"
+            echo >&2 "  -p        - use PATH-style splitting"
+            echo >&2 "  -A array  - display \${array[@]}"
+            echo >&2 "  -S var    - display \${var}"
+            ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+    if [[ -z $_did ]]
+    then
+        y7psplit _dirs "$PATH"
+    fi
+    for _f
+    do
+        for _d in "${_dirs[@]}"
+        do
+            if [[ -f "$_d/$_f" ]]
+            then
+                printf '%s\n' "$_d/$_f"
+            fi
+        done
+    done
+}

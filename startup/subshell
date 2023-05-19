@@ -1,0 +1,9 @@
+# This is executed by subshells, whether or not interactive,
+# before the interactive-shell phase, for bash and zsh.
+# This is NOT executed by ksh.
+
+# shellcheck source=../util/shid
+. "$Y7SYS/util/shid"
+
+# shellcheck source=../util/fpath
+. "$Y7SYS/util/fpath" subshell

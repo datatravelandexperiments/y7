@@ -1,0 +1,4 @@
+function y7finddata
+{
+    y7findsubdata '' "$@"
+}

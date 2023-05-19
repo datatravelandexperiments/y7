@@ -1,0 +1,31 @@
+if [[ $- == *i* ]]
+then
+    # shellcheck source=../util/shid
+    . "$Y7SYS/util/shid"
+    # shellcheck source=../util/pkgsplit
+    . "$Y7SYS/util/pkgsplit"
+
+    if [[ -z $Y7T ]]
+    then
+        # shellcheck source=../util/phase
+        . "$Y7SYS/util/phase" terminal
+        export Y7T=${TERM:-dumb}
+    fi
+
+    # shellcheck source=../util/phase
+    . "$Y7SYS/util/phase" interactive
+
+    if [[ -n $Y7_USE ]]
+    then
+        y7psplit y7_use "$Y7_USE"
+        unset Y7_USE
+        y7psplit y7_fpath "$Y7FPATH"
+        # shellcheck source=../util/addone
+        . "$Y7SYS/util/addone" "${y7_use[@]}"
+        # shellcheck source=../util/fpath
+        . "$Y7SYS/util/fpath" export
+    fi
+
+    # shellcheck source=../util/cleanup
+    . "$Y7SYS/util/cleanup"
+fi

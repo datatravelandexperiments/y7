@@ -1,0 +1,11 @@
+function y7setd
+{
+    if y7cd "$@"
+    then
+        typeset -a dirs
+        y7esplit dirs "$Y7DIRS"
+        dirs[0]=$PWD
+        y7pathclean dirs
+        Y7DIRS=$(y7ejoin "${dirs[@]}")
+    fi
+}

@@ -1,0 +1,93 @@
+#   fpath profile ‹dir›
+#       If ‹dir› is not in |y7_fpath|, add it and [auto]load functions
+#       from ‹dir›/$Y7SH/.
+#   fpath export
+#       Export y7_fpath array to Y7FPATH.
+#   fpath subshell
+#       [Auto]load functions from $Y7SH directories under $Y7FPATH
+
+case "$1" in
+    init|profile)
+        [[ -d "$2" ]] || return 1
+        if [[ $1 == init ]]
+        then
+            y7_fpath=("$2")
+        else
+            y7arrayadd y7_fpath -d "$2" || return $?
+        fi
+        if [[ -d $2/$Y7SH ]]
+        then
+            case $Y7SH in
+                ksh93)
+                    FPATH+="${FPATH:+:}$2/$Y7SH"
+                    ;;
+                zsh)
+                    # This is wrong.
+                    for y7_fn in $2/$Y7SH/*
+                    do
+                        autoload -R "$y7_fn"
+                    done
+                    ;;
+                bash)
+                    # bash is too dumb for anything.
+                    for y7_fn in $2/$Y7SH/*
+                    do
+                        . "$y7_fn"
+                    done
+                    ;;
+            esac
+        fi
+        ;;
+    export)
+        export Y7FPATH=$(y7pjoin "${y7_fpath[@]}")
+        # Build FPATH for ksh.
+        y7_kshfpath=
+        for y7_p in "${y7_fpath[@]}"
+        do
+            if [[ -d $y7_p/ksh93 ]]
+            then
+                y7_kshfpath+="${y7_kshfpath:+:}${y7_p}/ksh93"
+            fi
+        done
+        export FPATH=$y7_kshfpath
+        ;;
+    subshell)
+        . "$Y7SYS/function/$Y7SH/y7psplit"
+        y7psplit y7_fpath "$Y7FPATH"
+        case $Y7SH in
+            ksh93)
+                # ksh loads nothing on non-login, non-interactive shells.
+                # We assume FPATH remains in the enviroment.
+                :
+                ;;
+            zsh)
+                # Assume FPATH in the environment is for ksh,
+                # and autoload from $Y7FPATH.
+                for y7_p in $y7_fpath
+                do
+                    if [[ -d $y7_p/$Y7SH ]]
+                    then
+                        # This is wrong.
+                        for y7_fn in $y7_p/$Y7SH/*
+                        do
+                            autoload -R "$y7_fn"
+                        done
+                    fi
+                done
+                ;;
+            bash)
+                # Load from $Y7FPATH.
+                for y7_p in "${y7_fpath[@]}"
+                do
+                    if [[ -d $y7_p/$Y7SH ]]
+                    then
+                        for y7_fn in $y7_p/$Y7SH/*
+                        do
+                            . "$y7_fn"
+                        done
+                    fi
+                done
+                ;;
+        esac
+        ;;
+esac

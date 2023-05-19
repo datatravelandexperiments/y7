@@ -1,0 +1,10 @@
+# shellcheck disable=SC1090
+
+function y7use
+{
+  . "$Y7SYS/util/pkgsplit"
+  y7psplit y7_fpath "$Y7FPATH"
+  . "$Y7SYS/util/addone" "$@"
+  . "$Y7SYS/util/fpath" export
+  . "$Y7SYS/util/cleanup" add
+}

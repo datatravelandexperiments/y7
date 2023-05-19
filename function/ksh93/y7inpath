@@ -1,0 +1,44 @@
+function y7inpath
+{
+    typeset opc _number=1 _method=y7psplit _tilde=1 _indent= did d f
+    typeset -a dirs tmp
+    typeset OPTIND
+    while getopts 'A:S:ep' opc
+    do
+        case "$opc" in
+        A)  typeset -n a=$OPTARG
+            dirs+=("${a[@]}")
+            did=1
+            ;;
+        S)  typeset -n s=$OPTARG
+            $_method tmp "$s"
+            dirs+=("${tmp[@]}")
+            did=1
+            ;;
+        e)  _method=y7esplit;;
+        p)  _method=y7psplit;;
+        '?')
+            echo >&2 "Usage: dirs [-elspv] [-A array] [-S var] [dir:dir:…]"
+            echo >&2 "  -e        - use Y7 escaped splitting"
+            echo >&2 "  -p        - use PATH-style splitting"
+            echo >&2 "  -A array  - display \${array[@]}"
+            echo >&2 "  -S var    - display \${var}"
+            ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+    if [[ -z $did ]]
+    then
+        y7psplit dirs "$PATH"
+    fi
+    for f
+    do
+        for d in "${dirs[@]}"
+        do
+            if [[ -f "$d/$f" ]]
+            then
+                printf '%s\n' "$d/$f"
+            fi
+        done
+    done
+}

@@ -1,0 +1,36 @@
+function y7cd
+{
+    # First try the arguments as supplied.
+    if builtin 'cd' "$@" 2>/dev/null
+    then
+        return 0
+    fi
+
+    typeset -a dirs
+    y7esplit dirs "$Y7DIRS"
+
+    # ±n
+    if [[ $1 =~ ^[-+][0-9]+$ ]]
+    then
+        typeset d=$(( ($1) < 0 ? (1 - ($1)) : -($1) ))
+        builtin 'cd' "${dirs[$d]}"
+        return $?
+    fi
+
+    # Search directory stack.
+    typeset d a b
+    for d in "${dirs[@]}"
+    do
+        [[ -z $a && $d == */$1 ]] && a=$d
+        [[ -z $r && $d == */$1/* ]] && b="${d%/$1/*}/$1"
+    done
+    [[ -z $a ]] && a=$b
+    if [[ -n $a ]]
+    then
+        builtin 'cd' "$a"
+        return $?
+    fi
+
+    # Run the original 'cd' to report the error.
+    builtin 'cd' "$@"
+}

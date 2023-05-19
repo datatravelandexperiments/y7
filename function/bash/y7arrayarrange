@@ -1,0 +1,45 @@
+function y7arrayarrange
+{
+    typeset -n array=$1
+    shift
+    typeset -a plevel pattern alevel out
+    typeset i j l min=0 max=0
+
+    # Split and find minimum & maximum level.
+    for i
+    do
+        l="${i%%:*}"
+        ((l < min)) && min=$l
+        ((l > max)) && max=$l
+        plevel+=("$l")
+        pattern+=("${i#*:}")
+    done
+
+    # Find level of each array element.
+    for i in "${array[@]}"
+    do
+        l=0
+        for j in ${!plevel[*]}
+        do
+            if [[ $i == ${pattern[j]} ]]
+            then
+                ((l = ${plevel[j]}))
+                break
+            fi
+        done
+        alevel+=($l)
+    done
+
+    # Distribute.
+    for ((i = min; i <= max; ++i))
+    do
+        for j in ${!array[*]}
+        do
+            if ((i == alevel[j]))
+            then
+                out+=("${array[j]}")
+            fi
+        done
+    done
+    array=("${out[@]}")
+}

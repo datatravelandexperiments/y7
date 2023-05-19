@@ -1,0 +1,21 @@
+function y7pathclean
+{
+    typeset _array=$1
+    typeset -a _new
+    typeset _i _j
+    for _i in ${(P)_array}
+    do
+        if [[ -d $_i ]]
+        then
+            for _j in $_new
+            do
+                if [[ $_j -ef $_i ]]
+                then
+                    continue 2
+                fi
+            done
+            _new+=("$_i")
+        fi
+    done
+    set -A $_array $_new
+}

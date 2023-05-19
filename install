@@ -1,0 +1,5 @@
+y7installfile --home dotfiles/bashrc    .bashrc
+y7installfile --home dotfiles/kshrc     .kshrc
+y7installfile --home dotfiles/profile   .profile
+y7installfile --home dotfiles/zlogin    .zlogin
+y7installfile --home dotfiles/zshenv    .zshenv

@@ -1,0 +1,66 @@
+# bash/ksh93 version
+
+function y7dirs
+{
+    typeset opc _number=1 _method=y7psplit _tilde=1 _indent= did op
+    typeset -a dirs tmp
+    typeset OPTIND
+    while getopts ':A:S:eilpsv' opc
+    do
+        case "$opc" in
+        A)  typeset -n a=$OPTARG
+            dirs+=("${a[@]}")
+            did=1
+            ;;
+        S)  typeset -n s=$OPTARG
+            $_method tmp "$s"
+            dirs+=("${tmp[@]}")
+            did=1
+            ;;
+        e)  _method=y7esplit;;
+        i)  _indent+=' ';;
+        l)  _tilde=;;
+        s)  _number=;;
+        p)  _method=y7psplit;;
+        v)  _number=1;;
+        '?')
+            echo >&2 "Usage: dirs [-elspv] [-A array] [-S var] [dir:dir:…]"
+            echo >&2 "  -e        - use Y7 escaped splitting"
+            echo >&2 "  -l        - don't use ~ for \$HOME"
+            echo >&2 "  -s        - don't number directories"
+            echo >&2 "  -p        - use PATH-style splitting"
+            echo >&2 "  -v        - number directories (default)"
+            echo >&2 "  -A array  - display \${array[@]}"
+            echo >&2 "  -S var    - display \${var}"
+            return 1
+            ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+    for op
+    do
+        $_method tmp "$op"
+        dirs+=("${tmp[@]}")
+        did=1
+    done
+    if [[ -z $did ]]
+    then
+        y7esplit dirs "$Y7DIRS"
+    fi
+
+    typeset -i i n=${#dirs[*]} m=$((n-1)) wn=1+${#n} wm=1+${#m}
+    typeset t u
+    for ((i = 0; i < n; ++i))
+    do
+        u=${dirs[i]}
+        [[ -n $_tilde && $u == $HOME* ]] && u="~${u#$HOME}"
+        if [[ -n $_number ]]
+        then
+            t=$(printf '%+*d' $wm $i)
+            printf ' %s %+*d ' "${t/+/-}" $wn $((n - i))
+        fi
+        printf '%s%s\n' "$_indent" "$u"
+    done
+}
+
+# vim:set filetype=sh et sts=4 sw=4 ai noci nosi:

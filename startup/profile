@@ -1,0 +1,117 @@
+# Identify the current shell.
+# shellcheck source=../util/shid
+. "$Y7SYS/util/shid"
+
+# Set up shell functions.
+typeset -a y7_fpath
+# shellcheck source=../util/fpath
+. "$Y7SYS/util/fpath" init "$Y7SYS/function"
+
+# Set $SHELL.
+if [[ $SHELL != "$Y7SH" ]]
+then
+    if [[ $Y7SH == zsh ]]
+    then
+        SHELL=$(y7which "$ZSH_NAME")
+    elif [[ $0 == /* ]]
+    then
+        SHELL=$0
+    else
+        SHELL=$(y7which "$Y7SH")
+    fi
+    export SHELL
+fi
+
+# Set Y7 instance properties, and $USER.
+[[ -z $HOST ]] && HOST=$(hostname 2>/dev/null) || HOST=$(uname -n)
+export HOST
+export Y7HOST=${HOST%%.*}
+export Y7SITE=${HOST%.*}
+Y7SITE=${Y7SITE##*.}
+[[ -z $USER ]] && USER=$LOGNAME
+[[ -z $USER ]] && USER=$(id -un 2>/dev/null) || USER=${HOME##*/}
+export USER
+export Y7HW=${Y7HW:-$(uname -m)}
+export Y7OS=${Y7OS:-$(uname -s)}
+export Y7OR=${Y7OR:-$(uname -r)}
+
+# Make zsh behave somewhat sanely.
+[[ $Y7SH == zsh ]] && setopt local_options no_nomatch
+
+# Configuration loading.
+
+typeset -a y7_pkd y7_pkgs y7_path
+typeset -A y7_pkgd y7_pkgi y7_pkgx
+y7psplit y7_path "$PATH"
+
+function dir
+{
+    y7arrayadd y7_pkd -d "$1" || echo >&2 "directory \"$1\" not found"
+}
+
+function use
+{
+    # shellcheck source=../util/pkgadd
+    . "$Y7SYS/util/pkgadd" "$@" || echo >&2 "package \"$1\" not added"
+}
+
+function try
+{
+    # shellcheck source=../util/pkgadd
+    . "$Y7SYS/util/pkgadd" "$@"
+}
+
+# System package.
+
+dir "${Y7SYS%/*}"
+use "${Y7SYS##*/}"
+
+# XDG directories. These are also useful on non-XDG platforms,
+# so we make sure the core _HOME directories are set.
+
+: ${XDG_CONFIG_HOME:=$HOME/.config}
+: ${XDG_DATA_HOME:=$HOME/.local/share}
+: ${XDG_STATE_HOME:=$HOME/.local/state}
+: ${XDG_CACHE_HOME:=$HOME/.cache}
+
+# Configured packages.
+
+y7_rc="${XDG_CONFIG_HOME}/y7/y7rc"
+if [[ -f "$y7_rc" ]]
+then
+    # shellcheck disable=SC1090
+    . "$y7_rc"
+fi
+
+unset -f dir use try
+
+# At this point,
+# - y7_pkd[] is an array of configured package directories.
+# - y7_pkgs[] is an array of package names in configured order.
+# - y7_pkgi[] is an associative array of of y7_pkd[] indices by package name.
+# - y7_pkgd[] is an associative array of of package directories by package name.
+# - Shell functions from configured packages are available.
+# - The ‘profile’ phase of configured packages has executed.
+
+PATH=$(y7pjoin "${y7_path[@]}")
+
+# Run login scripts.
+# shellcheck source=../util/phase
+. "$Y7SYS/util/phase" login
+
+PATH=$(y7pjoin "${y7_path[@]}")
+
+export ENV="$HOME/.kshrc"
+export BASH_ENV="$HOME/.bashrc"
+
+# shellcheck source=../util/fpath
+. "$Y7SYS/util/fpath" export
+
+# shellcheck source=../util/cleanup
+. "$Y7SYS/util/cleanup" profile
+
+if [[ $Y7SH == bash && -f "$BASH_ENV" ]]
+then
+    # shellcheck disable=SC1090
+    . "$BASH_ENV"
+fi

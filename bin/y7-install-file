@@ -1,0 +1,275 @@
+#!/usr/bin/env ksh93
+
+# ShellCheck does not understand compound variables.
+# shellcheck disable=SC2191
+
+SELF=${0##*/}
+
+typeset -A dir=(
+    [C]=${XDG_CONFIG_HOME:-$HOME/.config}
+    [D]=${XDG_DATA_HOME:-$HOME/.local/share}
+    [H]=${HOME}
+)
+
+typeset -C opt=(
+    usage=$'
+    [-1]
+    [c:copy?Copy files and directories]
+    [l:link?(Hard) link files]
+    [s:symlink?Symbolic link files and directories]
+    [p:print?Print installed target]
+    [b:backup?Back up existing targets]
+    [i:interactive?Ask whether to replace existing targets]
+    [n:skip?Skip existing targets]
+    [y:replace?Replace existing targets]
+    [C:config?Install to configuration directory]
+    [D:data?Install to data directory]
+    [H:home?Install to home directory]
+    [10:from-config]
+    [11:from-data]
+    [12:from-home]
+    [v:verbose?Be verbose]
+    [20:dryrun]
+    [21:bootstrap]
+
+    [source] [destination]'
+    how=    # How to install
+    exist=  # What to do if the destination exists
+    target= # Where to install
+    from=
+    v=0
+    dryrun=
+    bootstrap=
+)
+
+while getopts "${opt.usage}" opc
+do
+    case ${opc} in
+    [cls])
+        opt.how+="$opc"
+        ;;
+    [biy])
+        if [[ -n ${opt.exit} ]]
+        then
+            print -u2 "$SELF: fatal: use only one of -[biy]."
+            exit 1
+        fi
+        opt.exist="$opc"
+        ;;
+    [CDH])
+        if [[ -n ${opt.target} ]]
+        then
+            print -u2 "$SELF: fatal: use only one of -[CDH]."
+            exit 1
+        fi
+        opt.target="${dir[$opc]}"
+        ;;
+    1[012])
+        if [[ -n ${opt.from} ]]
+        then
+            print -u2 "$SELF: fatal: use only one of --from-*."
+            exit 1
+        fi
+        case $opc in
+        10) opc=C;;
+        11) opc=D;;
+        12) opc=H;;
+        esac
+        opt.from="${dir[$opc]}"
+        ;;
+    20)
+        opt.dryrun=dryrun
+        ;;
+    21)
+        opt.bootstrap=bootstrap
+        ;;
+    *)
+        typeset "opt.$opc=${OPTARG:-1}"
+        ;;
+    esac
+done
+shift OPTIND-1
+
+[[ -z ${opt.exist} ]] && opt.exists=n
+
+function verbosely
+{
+    ((opt.v)) && print -u2 -- "$SELF: $*"
+    if [[ -n ${opt.dryrun}${opt.bootstrap} ]]
+    then
+        print -- "$*"
+        return 0
+    fi
+    "$@"
+}
+
+# Decide whether to install a file.
+
+function should_install
+{
+    typeset src=$1 dst=$2
+    if [[ -e $dst || ${opt.bootstrap} ]]
+    then
+        # Destination exists.
+        if [[ $src -ef $dst && -z ${opt.bootstrap} ]]
+        then
+            # Destination and source are the same file.
+            ((opt.v)) && print -u2 "$SELF: note: \"$dst\" already installed."
+            return 1
+        fi
+
+        typeset e=${opt.exist}
+        if [[ $e == i ]]
+        then
+            print -u2 "$SELF: destination \"$dst\" already exists."
+            until [[ $e == [bfs] ]]
+            do
+                read -r "e?  Backup, Replace, Skip? "
+                case $e in
+                [bB]*)      e=b;;
+                [fFrR]*)    e=f;;
+                [sS]*)      e=s;;
+                esac
+            done
+        fi
+
+        if [[ $e == b ]]
+        then
+            typeset -Z3 bb=1
+            while ((bb < 1000))
+            do
+                typeset bf="$dst-$bb"
+                if [[ -n ${opt.bootstrap} ]]
+                then
+                    verbosely test -e "$dst" '&&' mv "$dst" "$bf"
+                    return 0
+                elif [[ ! -e $bf ]]
+                then
+                    if verbosely mv "$dst" "$bf"
+                    then
+                        print -u2 "$SELF: note: backed up to \"$bf\"."
+                        return 0
+                    fi
+                fi
+                ((++bb))
+            done
+            print -u2 "$SELF: warning: could not back up \"$dst\"; skipping."
+            return 1
+        fi
+
+        if [[ $e == f ]]
+        then
+            if verbosely rm -f "$dst"
+            then
+                ((opt.v)) && print -u2 "$SELF: note: replacing \"$dst\"."
+                return 0
+            fi
+            e=s
+        fi
+
+        ((opt.v)) && print -u2 "$SELF: note: skipping existing \"$dst\"."
+        [[ -n ${opt.p} ]] && printf '%s\n' "$dst"
+        return 1
+    fi
+    return 0
+}
+
+typeset inst_cmd=([l]='ln' [s]='ln -s' [c]='cp -r')
+typeset inst_msg=([l]='hard link' [s]='symlink' [c]='copy')
+
+case $# in
+1)
+    src=$1
+    dst=${src##*/}
+    ;;
+2)
+    src=$1
+    dst=$2
+    ;;
+*)
+    print -u2 "$SELF: provide one or two arguments"
+    exit 1
+    ;;
+esac
+in=$src
+
+# Determine the source.
+
+if [[ $src != /* ]]
+then
+    if [[ -n ${opt.from} ]]
+    then
+        src=${opt.from}/$src
+    else
+        src=$PWD/$src
+    fi
+fi
+if [[ ! -e $src ]]
+then
+    print -u2 "$SELF: error: unknown source \"$src\"."
+    exit 1
+fi
+
+# Determine the destination.
+
+if [[ $dst != /* ]]
+then
+    if [[ -z ${opt.target} ]]
+    then
+        print -u2 "$SELF: error: no target for relative destination \"$dst\"."
+        exit 1
+    fi
+    dst=${opt.target}/${dst}
+fi
+
+if [[ $dst == */ ]]
+then
+    dst+="${src##*/}"
+fi
+
+if [[ -z ${opt.how} ]]
+then
+    if [[ -f $src ]]
+    then
+        opt.how=slc
+    else
+        opt.how=sc
+    fi
+fi
+
+if ((opt.v))
+then
+    print -u2 "$SELF: install from: \"$src\""
+    print -u2 "$SELF: install to:   \"$dst\""
+fi
+
+if should_install "$src" "$dst"
+then
+    if [[ ! -d ${dst%/*} || -n ${opt.bootstrap} ]]
+    then
+        verbosely mkdir -p "${dst%/*}" || return 1
+    fi
+    typeset h cmd msg r=1
+    while [[ -n ${opt.how} ]]
+    do
+        h=${opt.how:0:1}
+        opt.how="${opt.how:1}"
+        cmd=${inst_cmd[$h]:-false}
+        msg+=" ${inst_msg[$h]}"
+        if verbosely $cmd "$src" "$dst"
+        then
+            r=0
+            [[ -n ${opt.p} ]] && printf '%s\n' "$dst"
+            break
+        fi
+        msg+=' failed;'
+    done
+    if ((r))
+    then
+        print -u2 "$SELF: error:$msg could not install \"$in\"."
+    else
+        ((opt.v)) && print -u2 "$SELF: note:$msg \"$in\" to \"$dst\""
+    fi
+fi
+
+exit 0

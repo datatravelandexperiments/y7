@@ -1,0 +1,9 @@
+for y7_p in "${y7_pkgs[@]}"
+do
+    y7_d="${y7_pkgd[$y7_p]}"
+    # echo >&2 "$1  $y7_d $y7_p"
+    if [[ ${y7_pkgx[$y7_p]} == *${1:0:1}* ]]
+    then
+        . "$Y7SYS/util/load" "$1" "$y7_d"
+    fi
+done

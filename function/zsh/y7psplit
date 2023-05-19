@@ -1,0 +1,15 @@
+function y7psplit
+{
+    typeset -a _array
+    typeset _aname=$1
+    shift
+    if [[ -z $1 ]]
+    then
+        set -A "$_aname"
+        return
+    fi
+    set -f
+    IFS=: read -rA _array <<<$*
+    set +f
+    set -A "$_aname" "${_array[@]}"
+}

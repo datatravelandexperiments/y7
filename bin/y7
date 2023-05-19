@@ -1,0 +1,121 @@
+#!/usr/bin/env ksh93
+
+SELF=${0##*/}
+
+typeset -C opt=(
+    usage=$'
+        [-1]
+        [p:path?Print subcommand directory path]
+        [v:verbose]
+        [Y:y7sys]:[DIR]
+
+        [subcommand [options] [args...]]'
+)
+
+while getopts -a "$SELF" "${opt.usage}" opt.c
+do
+    case ${opt.c} in
+    Y)
+        if [[ -d $OPTARG ]]
+        then
+            export Y7SYS=$OPTARG
+        else
+            print -u2 "$SELF: not a directory: $OPTARG"
+        fi
+        ;;
+    \?)
+        $0 '--??'
+        exit 1
+        ;;
+    *)
+        typeset opt._${opt.c}=${OPTARG:-1}
+        ;;
+    esac
+done
+shift OPTIND-1
+
+if [[ -z $Y7SYS || ! -d $Y7SYS ]]
+then
+    print -u2 "$SELF: no Y7SYS"
+    exit 1
+fi
+
+. "$Y7SYS/util/pkgsplit"
+
+if [[ -n "$*" ]]
+then
+    if [[ ${opt._p} ]]
+    then
+        for i
+        do
+            print -- "${y7_pkgd[$i]}"
+        done
+    else
+        . "$Y7SYS/util/y7run" "$@"
+    fi
+    exit $?
+fi
+
+function printflag
+{
+    if test -$2 "$3"
+    then
+        print -n "$1"
+    else
+        print -n -- '-'
+    fi
+}
+
+function printpkg
+{
+    print -n '  '
+    printflag p f "$1/profile"
+    printflag l f "$1/login"
+    printflag t f "$1/terminal"
+    printflag i f "$1/interactive"
+    print -n ' '
+    printflag y f "$1/y7"
+    printflag I f "$1/install"
+    print -n ' '
+    printflag b d "$1/bin"
+    printflag f d "$1/function"
+    print -n ' '
+    printflag c d "$1/config"
+    printflag s d "$1/share"
+    print "  ${1/${HOME}/\~}"
+}
+
+print "Shell: $Y7SH"
+
+if [[ -n ${opt._v} ]]
+then
+    print "Host: $Y7HOST running $Y7OS $Y7OR on $Y7HW at $Y7SITE"
+fi
+
+print "Packages:"
+
+if [[ -z ${opt._v} ]]
+then
+    print -- " ${y7_pkgs[*]}" | fmt
+    return
+fi
+
+for y7_d in "${y7_pkgd[@]}"
+do
+    printpkg "$y7_d"
+done
+
+pfx=$'Also available:\n'
+for d in "${y7_pkd[@]}"
+do
+    for p in "$d"/*
+    do
+        pkg=${p##*/}
+        if [[ -z ${y6_pkgd[$pkg]} ]]
+        then
+            print -n "$pfx"
+            pfx=
+            printpkg "$p"
+        fi
+    done
+done

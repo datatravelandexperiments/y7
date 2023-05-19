@@ -1,0 +1,4 @@
+if [[ -n $Y7SYS && $- == *i* ]]
+then
+    . "$Y7SYS/startup/interactive"
+fi

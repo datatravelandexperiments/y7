@@ -1,0 +1,159 @@
+#!/usr/bin/env ksh93
+
+# ShellCheck does not understand compound variables.
+# shellcheck disable=SC2191
+
+SELF=${0##*/}
+
+if [[ ! -d $Y7SYS ]]
+then
+    print -u2 -- "$SELF: requires \$Y7SYS to be set"
+    exit 1
+fi
+
+: ${XDG_CONFIG_HOME:=$HOME/.config}
+: ${XDG_DATA_HOME:=$HOME/.local/share}
+
+typeset -C opt=(
+    usage=$'
+    [-1]
+    [b:backup?Back up existing targets]
+    [i:interactive?Ask whether to replace existing targets]
+    [n:skip?Skip existing targets]
+    [y:replace?Replace existing targets]
+    [v?Be verbose.]
+    [20:dryrun]
+    [21:bootstrap]
+
+    directory ...'
+    exist=
+    dryrun=0
+    bootstrap=0
+)
+
+while getopts "${opt.usage}" opc
+do
+    case ${opc} in
+    [biny])
+        opt.exist+="$opc"
+        ;;
+    T)
+        if [[ $OPTARG != ?=* ]]
+        then
+            print -u2 "$SELF: fatal: use one or more of"
+            for t in ${!dir[*]}
+            do
+                print -u2 "  --set $t=directory    " \
+                          "- specify ${desc[$t]} directory"
+            done
+            exit 1
+        fi
+        t=${OPTARG:0:1}
+        d=${OPTARG:2}
+        if [[ ! -d $d ]]
+        then
+            print -u2 "$SELF: fatal: can't find directory \"$d\"."
+            exit 1
+        fi
+        dir[$t]=$d
+        ;;
+    v)
+        opt.v+=v
+        ;;
+    20)
+        opt.dryrun=1
+        opt.y7_install_opt+=(--dryrun)
+        ;;
+    21)
+        opt.bootstrap=1
+        opt.y7_install_opt+=(--bootstrap)
+        ;;
+    *)
+        typeset "opt.$opc=${OPTARG:-1}"
+        ;;
+    esac
+done
+shift OPTIND-1
+
+case ${#opt.exist} in
+0)
+    # If the user has not specified how to handle duplicates,
+    # then either ask interactively or back up originals
+    # according to whether we have terminal input.
+    if [[ -t 0 ]]
+    then
+        opt.exist=i
+    else
+        opt.exist=b
+    fi
+    ;;
+1)
+    :
+    ;;
+*)
+    print -u2 "$SELF: fatal: use only one of -[${opt.exist}]."
+    exit 1
+    ;;
+esac
+
+typeset -a y7_install_opt=("-${opt.v}${opt.exist}")
+((opt.dryrun)) && y7_install_opt+=('--dryrun')
+((opt.bootstrap)) && y7_install_opt+=('--bootstrap')
+
+function dryrun
+{
+    return $((!opt.dryrun))
+}
+
+function bootstrap
+{
+    return $((!opt.bootstrap))
+}
+
+function y7installfile
+{
+    $Y7SYS/bin/y7-install-file "${y7_install_opt[@]}" "$@"
+}
+
+. "$Y7SYS/util/shid"
+. "$Y7SYS/util/fpath" init "$Y7SYS/function"
+. "$Y7SYS/util/pkgsplit"
+
+for p
+do
+    [[ -n ${opt.v} ]] && print -u2 "$SELF: trying $p"
+    p=${p%/}
+    if [[ $p == /* && -d $p ]]
+    then
+        d=$p
+    else
+        for dir in "${y7_pkd[@]}"
+        do
+            if [[ -d "$dir/$p" ]]
+            then
+                d="$dir/$p"
+                break
+            fi
+        done
+        if [[ ! -d $d ]]
+        then
+            echo >&2 "$SELF: can not local package \"$p\""
+            continue
+        fi
+    fi
+    [[ -n ${opt.v} ]] && print -u2 "$SELF:    in $d"
+    if [[ -f "$d/install" ]]
+    then
+        (
+            if cd "$d"
+            then
+                # shellcheck disable=SC1091
+                . ./install "${d}"
+            fi
+        )
+    else
+        print -u2 "$SELF: note: nothing to do for package \"${d##*/}\"."
+    fi
+done
+
+exit 0

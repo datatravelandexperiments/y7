@@ -1,0 +1,15 @@
+function y7sublocate
+{
+    typeset pkg="${1##*/}" file="$2" current="$3" where
+    if [[ -n $current && -e $current ]]
+    then
+        printf '%s' "$current"
+        return 0
+    fi
+    shift 3
+    for where
+    do
+        y7findsub$where "$pkg" "$file" && return 0
+    done
+    return 1
+}

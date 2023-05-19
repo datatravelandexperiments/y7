@@ -1,0 +1,28 @@
+if [[ $- == *l* || -z $Y7SYS ]]
+then
+    unset Y7SYS
+    for Y7_D in \
+        ${XDG_DATA_HOME:=$HOME/.local/share}/y7/y7 \
+        /usr/local/share/y7/y7
+    do
+        if [[ -d "$Y7_D" ]]
+        then
+            export Y7SYS=$Y7_D
+            break
+        fi
+    done
+    [[ -z $Y7SYS ]] && echo >&2 "$0: no Y7SYS"
+fi
+
+if [[ -n $Y7SYS ]]
+then
+    if [[ $- == *l* ]]
+    then
+        . "$Y7SYS/startup/profile"
+    fi
+    . "$Y7SYS/startup/subshell"
+    if [[ $- == *i* ]]
+    then
+        . "$Y7SYS/startup/interactive"
+    fi
+fi

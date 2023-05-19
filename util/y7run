@@ -1,0 +1,39 @@
+#!/usr/bin/env ksh93
+
+[[ -n ${opt._v} ]] && echo >&2 "Y7: $*"
+
+y7_p=
+for d in "${y7_pkd[@]}"
+do
+    if [[ -d "$d/$1" ]]
+    then
+        y7_p="$d/$1"
+        break
+    fi
+done
+if [[ -n $y7_p ]]
+then
+    [[ -n ${opt._v} ]] && echo >&2 "Y7: found $y7_p"
+    if [[ -f $y7_p/y7 ]]
+    then
+        [[ -n ${opt._v} ]] && echo >&2 "Y7: load $y7_p/y7 $*"
+        . "$y7_p/y7" "$@"
+        exit $?
+    fi
+    [[ -n ${opt._v} ]] && echo >&2 "Y7: start subshell with $y7_p/y7 $*"
+    export Y7_USE=$(y7pjoin "$@")
+    exec "$Y7SH"
+fi
+
+y7_x=$(y7which "y7-$1")
+if [[ -n $y7_x ]]
+then
+    shift
+    [[ -n ${opt._v} ]] && echo >&2 "Y7: run $y7_x $*"
+    exec "$y7_x" "$@"
+fi
+
+echo >&2 "Y7: Don't know how to handle $1."
+exit 1
+
+# vim:set filetype=sh et sts=4 sw=4 ai noci nosi:

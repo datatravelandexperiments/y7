@@ -1,0 +1,4 @@
+function y7pjoin
+{
+    echo ${(j/:/)*}
+}

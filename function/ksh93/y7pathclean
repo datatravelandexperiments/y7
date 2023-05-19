@@ -1,0 +1,21 @@
+function y7pathclean
+{
+    typeset -n array=$1
+    typeset -a new
+    typeset i j
+    for i in "${array[@]}"
+    do
+        if [[ -d $i ]]
+        then
+            for j in "${new[@]}"
+            do
+                if [[ $j -ef $i ]]
+                then
+                    continue 2
+                fi
+            done
+            new+=("$i")
+        fi
+    done
+    array=("${new[@]}")
+}

@@ -1,0 +1,15 @@
+function y7arrayindex
+{
+    typeset _a=$1
+    typeset _t=$2 _p=$3 _d _i=0
+    for _d in ${(P)_a}
+    do
+        if test $_t "$_d/$_p"
+        then
+            echo $_i
+            return 0
+        fi
+        let ++_i
+    done
+    return 1
+}

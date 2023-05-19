@@ -1,0 +1,4 @@
+function y7pjoin
+{
+    (IFS=:; 2>&1 printf '%s' "$*")
+}

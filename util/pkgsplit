@@ -1,0 +1,33 @@
+# Enters with
+#   Y7PKD       A ‘:’-separated list of package directories.
+#   Y7PKG       A ‘:’-separated list of package entries, each of which is
+#               a ‘/’-separated tuple of:
+#                 - Index into Y7PKD of the package's directory (this helps
+#                   keep the env small, compared to storing the full path).
+#                 - Flags indicating which loadables the package contains
+#                   (this avoids many file-system tests for subshells).
+#                 - The package name.
+#
+# Exits with
+#   y7_pkd[]    Configured package directories.
+#   y7_pkgs[]   Array of package names.
+#   y7_pkgd[]   Associative array of package directory by package name.
+#   y7_pkgi[]   Associative array of y7_pkd[] index by package name.
+#   y7_pkgx[]   Associative array of package loadables by package name.
+
+typeset -a y7_path y7_pkd y7_pkgs
+typeset -A y7_pkgd y7_pkgi y7_pkgx
+y7psplit y7_path "$PATH"
+y7psplit y7_pkd "$Y7PKD"
+y7psplit y7_pkg "$Y7PKG"
+for y7_p in "${y7_pkg[@]}"
+do
+    y7_i=${y7_p%%/*}
+    y7_p=${y7_p#*/}
+    y7_x=${y7_p%/*}
+    y7_p=${y7_p#*/}
+    y7_pkgs+=("$y7_p")
+    y7_pkgd[$y7_p]="${y7_pkd[Y7Z+y7_i]}/$y7_p"
+    y7_pkgi[$y7_p]="${y7_i}"
+    y7_pkgx[$y7_p]="${y7_x}"
+done

@@ -1,0 +1,66 @@
+# zsh version
+
+function y7dirs
+{
+    typeset _opc _number=1 _method=y7psplit _tilde=1 _did _op
+    typeset -a _dirs _tmp
+    typeset OPTIND
+    while getopts ':A:S:elpsv' _opc
+    do
+        case "$_opc" in
+        A)  _dirs+=(${(P)OPTARG})
+            _did=1
+            ;;
+        S)  typeset s=${(P)OPTARG}
+            $_method _tmp "$s"
+            _dirs+=("${_tmp[@]}")
+            _did=1
+            ;;
+        e)  _method=y7esplit;;
+        l)  _tilde=;;
+        s)  _number=;;
+        p)  _method=y7psplit;;
+        v)  _number=1;;
+        '?')
+            echo >&2 "Usage: dirs [-elspv] [-A array] [-S var] [dir:dir:…]"
+            echo >&2 "  -e        - use Y7 escaped splitting"
+            echo >&2 "  -l        - don't use ~ for \$HOME"
+            echo >&2 "  -s        - don't number directories"
+            echo >&2 "  -p        - use PATH-style splitting"
+            echo >&2 "  -v        - number directories (default)"
+            echo >&2 "  -A array  - display \${array[@]}"
+            echo >&2 "  -S var    - display \${var}"
+            return
+            ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+    for _op
+    do
+        $_method _tmp "$_op"
+        _dirs+=("${_tmp[@]}")
+        _did=1
+    done
+    if [[ -z $_did ]]
+    then
+        y7esplit _dirs "$Y7DIRS"
+    fi
+
+    # zsh doesn't evaluate typeset left-to-right as other shells do.
+    typeset -i i n=${#_dirs}
+    typeset -i m=$((n-1))
+    typeset -i wn=1+${#n}
+    typeset -i wm=1+${#m}
+    typeset t u
+    for ((i = 0; i < n; ++i))
+    do
+        u=${_dirs[i+1]}
+        [[ -n $_tilde && $u == $HOME* ]] && u="~${u#$HOME}"
+        if [[ -n $_number ]]
+        then
+            printf -v t '%+*d' "$wm" "$i"
+            printf ' %s %+*d ' "${t/+/-}" $wn $((n - i))
+        fi
+        printf '%s\n' "$u"
+    done
+}

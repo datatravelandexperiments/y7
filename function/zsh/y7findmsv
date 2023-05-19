@@ -1,0 +1,27 @@
+function y7findmsv
+{
+    _f=$1
+    [[ $_f == '-d' ]] && _f=
+    shift
+    for _d
+    do
+        for _t in \
+            "/host/${Y7HOST}" \
+            "/site/${Y7SITE}" \
+            "/platform/${Y7OS}-${Y7OR}-${Y7HW}" \
+            "/platform/${Y7OS}-${Y7HW}" \
+            "/platform/${Y7OS}-${Y7OR}" \
+            "/platform/${Y7OS}" \
+            "/platform/${Y7HW}" \
+            /default \
+            ''
+        do
+            if [[ -e "$_d$_t{_f:+/}$_f" ]]
+            then
+                printf '%s\n' "$_d$_t${_f:+/}$_f"
+                return 0
+            fi
+        done
+    done
+    return 1
+}

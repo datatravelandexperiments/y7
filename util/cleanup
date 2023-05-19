@@ -1,0 +1,17 @@
+PATH=$(y7pjoin "${y7_path[@]}")
+Y7PKD=$(y7pjoin "${y7_pkd[@]}")
+Y7PKG=
+for y7_p in "${y7_pkgs[@]}"
+do
+    Y7PKG+="${Y7PKG:+:}${y7_pkgi[$y7_p]}/${y7_pkgx[$y7_p]}/${y7_p}"
+done
+export Y7PKD Y7PKG
+
+if [[ $Y7SH == zsh ]]
+then
+    # shellcheck disable=SC2086
+    unset ${(Mk)parameters:#Y7_*} ${(Mk)parameters:#y7*}
+else
+    # shellcheck disable=SC2086
+    unset ${!Y7_*} ${!y7*}
+fi

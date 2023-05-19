@@ -1,0 +1,15 @@
+function y7psplit
+{
+    typeset -n array=$1
+    shift
+    if [[ -z $1 ]]
+    then
+        typeset -a array=()
+        return
+    fi
+    set -f
+    IFS=: read -rA array <<<$*
+    set +f
+    # IFS is actually a field terminator, not a field separator.
+    [[ "$*" == *: ]] && array+=('')
+}

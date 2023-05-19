@@ -1,0 +1,14 @@
+function y7popd
+{
+    typeset -a dirs
+    y7esplit dirs "$Y7DIRS"
+    if (( ${#dirs[*]} < 2 ))
+    then
+        printf >&2 'empty stack!\n'
+        return 1
+    fi
+    y7cd "${dirs[2]}"
+    dirs[1]=$PWD
+    y7pathclean dirs
+    Y7DIRS=$(y7ejoin "${dirs[@]}")
+}
