@@ -1,4 +1,4 @@
 function y7findsubdot
 {
-    y7msv "$2" "$HOME/.${1##*/}"
+    y7findmsv "$2" "$HOME/.${1##*/}"
 }
