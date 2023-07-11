@@ -127,7 +127,7 @@ function should_install
                 read -r "e?  Backup, Replace, Skip? "
                 case $e in
                 [bB]*)      e=b;;
-                [fFrR]*)    e=f;;
+                [fFrR]*)    e=y;;
                 [sS]*)      e=s;;
                 esac
             done
@@ -157,7 +157,7 @@ function should_install
             return 1
         fi
 
-        if [[ $e == f ]]
+        if [[ $e == y ]]
         then
             if verbosely rm -f "$dst"
             then
