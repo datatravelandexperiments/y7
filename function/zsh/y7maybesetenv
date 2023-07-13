@@ -1,0 +1,13 @@
+function y7maybesetenv
+{
+  if test -z "${(P)1}" -a "$2" "$3"
+  then
+    eval "$1=\"$3\""
+  fi
+  if test -n "${(P)1}"
+  then
+    export "$1"
+    return 0
+  fi
+  return 1
+}

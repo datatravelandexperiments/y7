@@ -1,0 +1,14 @@
+function y7maybesetenv
+{
+  typeset -n v="$1"
+  if test -z "$v" -a "$2" "$3"
+  then
+    v="$3"
+  fi
+  if test -n "$v"
+  then
+    export "$1"
+    return 0
+  fi
+  return 1
+}
