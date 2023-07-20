@@ -32,9 +32,9 @@ function y7inpath
     then
         y7psplit _dirs "$PATH"
     fi
-    for _f
+    for _d in "${_dirs[@]}"
     do
-        for _d in "${_dirs[@]}"
+        for _f
         do
             if [[ -f "$_d/$_f" ]]
             then
