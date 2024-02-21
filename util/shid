@@ -1,10 +1,10 @@
 # Identify our shell.
 export Y7SH
-if [[ -n $ZSH_VERSION ]]
+if [[ -n "${ZSH_VERSION:-}" ]]
 then
     Y7SH=zsh
     Y7Z=1
-elif [[ -n $BASH_VERSION ]]
+elif [[ -n "${BASH_VERSION:-}" ]]
 then
     Y7SH=bash
     Y7Z=0
