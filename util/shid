@@ -1,23 +1,18 @@
 # Identify our shell.
 export Y7SH
-if [[ -n "${ZSH_VERSION:-}" ]]
+if test -n "${ZSH_VERSION:-}"
 then
     Y7SH=zsh
     Y7Z=1
-elif [[ -n "${BASH_VERSION:-}" ]]
+elif test -n "${BASH_VERSION:-}"
 then
     Y7SH=bash
     Y7Z=0
+elif test -n "$(eval 'echo "${.sh.version}"' 2>/dev/null)"
+then
+    Y7SH=ksh93
+    Y7Z=0
 else
-    y7_sh="$( (echo "${.sh.version}") 2>/dev/null )"
-    if [[ -n $y7_sh ]]
-    then
-        case $y7_sh in
-        *93*) Y7SH=ksh93;;
-        *)    Y7SH=ksh88;;
-        esac
-    else
-        Y7SH=sh
-    fi
+    Y7SH=sh
     Y7Z=0
 fi
