@@ -22,6 +22,19 @@ then
     export SHELL
 fi
 
+case "$Y7SH" in
+*ksh*)
+    [[ -f "$HOME/.kshrc" ]] && export ENV="$HOME/.kshrc"
+    ;;
+bash)
+    [[ -f "$HOME/.bashrc" ]] && export BASH_ENV="$HOME/.bashrc"
+    ;;
+zsh)
+    # Make zsh behave slightly more compatibly.
+    setopt local_options no_nomatch
+    ;;
+esac
+
 # Set Y7 instance properties, and $USER.
 [[ -z $HOST ]] && HOST=$(hostname 2>/dev/null) || HOST=$(uname -n)
 export HOST
@@ -34,9 +47,6 @@ export USER
 export Y7HW=${Y7HW:-$(uname -m)}
 export Y7OS=${Y7OS:-$(uname -s)}
 export Y7OR=${Y7OR:-$(uname -r)}
-
-# Make zsh behave somewhat sanely.
-[[ $Y7SH == zsh ]] && setopt local_options no_nomatch
 
 # Configuration loading.
 
@@ -101,9 +111,6 @@ PATH=$(y7pjoin "${y7_path[@]}")
 . "$Y7SYS/util/phase" login
 
 PATH=$(y7pjoin "${y7_path[@]}")
-
-export ENV="$HOME/.kshrc"
-export BASH_ENV="$HOME/.bashrc"
 
 # shellcheck source=../util/fpath
 . "$Y7SYS/util/fpath" export
