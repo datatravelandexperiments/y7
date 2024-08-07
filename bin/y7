@@ -111,7 +111,7 @@ do
     for p in "$d"/*
     do
         pkg=${p##*/}
-        if [[ -z ${y6_pkgd[$pkg]} ]]
+        if [[ -z ${y7_pkgd[$pkg]} ]]
         then
             print -n "$pfx"
             pfx=
