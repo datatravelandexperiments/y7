@@ -133,6 +133,20 @@ Takes an _array_ and one or of _n_:_glob_ pairs.
 Modifies the _array_ so that any entries that match a _glob_ pattern
 appear in order of increasing _n_.
 
+### y7arraylist
+
+`y7arraylist` [`-ehlspv`] [`-A` _array_] [`-S` _var_] [_dir_`:`_dir_`:`…]
+
+Options:
+- -e        - use Y6 escaped splitting
+- -h        - substitute ~ for $HOME
+- -l        - don't substitute ~ for $HOME
+- -s        - don't number directories
+- -p        - use PATH-style splitting
+- -v        - number directories (default)
+- -A array  - display ${array[@]}
+- -S var    - display ${var}
+
 ### y7ejoin
 
 `y7ejoin` _path_ …
@@ -170,16 +184,7 @@ in the list. Otherwise prefers an earlier match.
 
 ### y7dirs
 
-`y7dirs` [`-elspv`] [`-A` _array_] [`-S` _var_] [_dir_`:`_dir_`:`…]
-
-Options:
-- -e        - use Y6 escaped splitting
-- -l        - don't use ~ for $HOME
-- -s        - don't number directories
-- -p        - use PATH-style splitting
-- -v        - number directories (default)
-- -A array  - display ${array[@]}
-- -S var    - display ${var}
+Now equivalent to `y7arraylist -h`.
 
 ### y7inpath
 
