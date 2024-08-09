@@ -1,6 +1,4 @@
-# bash/ksh93 version
-
 function y7dirs
 {
-    y7arraylist -h "$@"
+    y7arraylist -e -h -S Y7DIRS "$@"
 }

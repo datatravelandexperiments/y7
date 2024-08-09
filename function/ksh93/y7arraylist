@@ -2,7 +2,7 @@
 
 function y7arraylist
 {
-    typeset opc _number=1 _method=y7psplit _tilde=1 _indent= did op
+    typeset opc _number=1 _method=y7psplit _tilde= _indent= did op
     typeset -a dirs tmp
     typeset OPTIND
     while getopts ':A:S:ehilpsv' opc
@@ -45,10 +45,6 @@ function y7arraylist
         dirs+=("${tmp[@]}")
         did=1
     done
-    if [[ -z $did ]]
-    then
-        y7esplit dirs "$Y7DIRS"
-    fi
 
     typeset -i i n=${#dirs[*]} m=$((n-1)) wn=1+${#n} wm=1+${#m}
     typeset t u

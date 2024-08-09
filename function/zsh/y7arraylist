@@ -43,10 +43,6 @@ function y7arraylist
         _dirs+=("${_tmp[@]}")
         _did=1
     done
-    if [[ -z $_did ]]
-    then
-        y7esplit _dirs "$Y7DIRS"
-    fi
 
     # zsh doesn't evaluate typeset left-to-right as other shells do.
     typeset -i i n=${#_dirs}
