@@ -5,7 +5,7 @@ function y7arraylist
     typeset opc _number=1 _method=y7psplit _tilde= _indent= did op
     typeset -a dirs tmp
     typeset OPTIND
-    while getopts ':A:S:ehilpsv' opc
+    while getopts ':A:S:ehilpsvw' opc
     do
         case "$opc" in
         A)  typeset -n a=$OPTARG
@@ -24,14 +24,16 @@ function y7arraylist
         s)  _number=;;
         p)  _method=y7psplit;;
         v)  _number=1;;
+        w)  _method=y7wsplit;;
         '?')
-            echo >&2 "Usage: $0 [-ehlspv] [-A array] [-S var] [dir:dir:…]"
+            echo >&2 "Usage: $0 [-ehlspvw] [-A array] [-S var] [dir:dir:…]"
             echo >&2 "  -e        - use Y7 escaped splitting"
             echo >&2 "  -h        - substitute ~ for \$HOME"
             echo >&2 "  -l        - don't substitute ~ for \$HOME"
             echo >&2 "  -s        - don't number entries"
             echo >&2 "  -p        - use PATH-style splitting"
             echo >&2 "  -v        - number entries (default)"
+            echo >&2 "  -w        - use semicolon splitting"
             echo >&2 "  -A array  - display \${array[@]}"
             echo >&2 "  -S var    - display \${var}"
             return 1
